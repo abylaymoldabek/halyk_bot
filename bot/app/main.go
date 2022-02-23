@@ -1,20 +1,14 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"os"
-	"regexp"
 	"strconv"
 	"time"
-	"v/domain"
+	"v/logger"
+	"v/process/delivery/telebot"
 	"v/process/repository/client"
 	"v/process/usecase"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-
-	"strings"
 	//"github.com/subosito/gotenv"
 )
 
@@ -37,59 +31,16 @@ func SetEnvAll() {
 
 func main() {
 	SetEnvAll()
-	sampleRegexp := regexp.MustCompile(`\d`)
-	bot, err := tgbotapi.NewBotAPI("5001533822:AAHqehWoBVXpqiSwXMq3i9GX4znSw0D3d9s")
+	processRepo := client.NewClient()
+	//time.Sleep(time.Second * 20)
+	timeoutInt, err := strconv.Atoi(os.Getenv("CTX_TIMEOUT"))
 	if err != nil {
-		log.Panic(err)
+		fmt.Println("Invalid timeout")
+		return
 	}
-
-	bot.Debug = true
-
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-
-	updates := bot.GetUpdatesChan(u)
-
-	teMessage := ""
-	for update := range updates {
-		if update.Message != nil { // If we got a message
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
-			if strings.Contains(update.Message.Text, "/") {
-				continue
-			} else if sampleRegexp.MatchString(update.Message.Text) {
-				teMessage += update.Message.Text
-				fmt.Println(teMessage)
-				msg.Text = "Хорошо, получил данные. Прошу ожидайте..."
-				bot.Send(msg)
-				processRepo := client.NewClient()
-				time.Sleep(time.Second * 20)
-				timeoutInt, err := strconv.Atoi(os.Getenv("CTX_TIMEOUT"))
-				if err != nil {
-					fmt.Println("Invalid timeout")
-					return
-				}
-				timeoutContext := time.Duration(timeoutInt) * time.Second
-				pu := usecase.NewProcessUsecase(processRepo, timeoutContext)
-				criteria := domain.Criteria{
-					ID:   teMessage, //"790713303493",ration is nill "credit01"
-					Type: "onboarding01",
-				}
-
-				res, err := pu.MainLogic(context.Background(), criteria)
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
-				msg.Text = res.Status
-				bot.Send(msg)
-			} else {
-				msg.Text = "Неправильные данные"
-				bot.Send(msg)
-			}
-		}
-	}
-
+	log := logger.NewLogger()
+	timeout := time.Duration(timeoutInt) * time.Second
+	process_uc := usecase.NewProcessUsecase(processRepo, timeout)
+	process_handler := telebot.NewProcessHandler(log, process_uc)
+	process_handler.ProcessRequest()
 }

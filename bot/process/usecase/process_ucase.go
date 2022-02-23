@@ -2,9 +2,9 @@ package usecase
 
 import (
 	"context"
-	"v/domain"
-	"time"
 	"log"
+	"time"
+	"v/domain"
 )
 
 type processUsecase struct {
@@ -20,7 +20,7 @@ func NewProcessUsecase(p domain.ProcessRepository, timeout time.Duration) domain
 	}
 }
 
-func (p *processUsecase) MainLogic(c context.Context, searchCriteria domain.Criteria) (*domain.ResponseStruct, error) {
+func (p *processUsecase) ProcessRequest(c context.Context, searchCriteria domain.Criteria) (*domain.ResponseStruct, error) {
 	ctx, cancel := context.WithTimeout(c, p.contextTimeout)
 	defer cancel()
 	process, err := p.processRepo.GetProcess(ctx, searchCriteria)
