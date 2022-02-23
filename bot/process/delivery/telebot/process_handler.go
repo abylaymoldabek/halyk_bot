@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"v/domain"
+	"v/process/delivery/telebot/answers"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -15,6 +16,7 @@ type ProcessHandler struct {
 	log domain.Logger
 	uc  domain.ProcessUsecase
 	reg *regexp.Regexp
+	ans answers.Answers
 }
 
 func NewProcessHandler(log domain.Logger, uc domain.ProcessUsecase) *ProcessHandler {
@@ -22,6 +24,7 @@ func NewProcessHandler(log domain.Logger, uc domain.ProcessUsecase) *ProcessHand
 		log: log,
 		uc:  uc,
 		reg: regexp.MustCompile(`\d`),
+		ans: answers.NewAnswers(),
 	}
 }
 
@@ -74,6 +77,9 @@ func (p *ProcessHandler) ProcessRequest() {
 					return
 				}
 				msg.Text = res.Status
+
+				text, _ := p.ans.GetAnswer(criteria.Type, res.Status)
+				msg.Text = text
 				bot.Send(msg)
 			} else {
 				msg.Text = "Неправильные данные"

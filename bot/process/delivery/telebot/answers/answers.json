@@ -1,0 +1,44 @@
+[
+    {
+        "processName": "EKP",
+        "cases": [
+            {
+                "status": "done_success",
+                "answer": "Успех"
+            }, 
+            {
+                "status": "dm1_decline",
+                "answer": "Отказ от банка"
+            },
+            {
+                "status": "dm2_decline",
+                "answer": "Отказ от банка"
+            },
+            {
+                "status": "dm3_decline",
+                "answer": "Отказ от банка"
+            }
+        ]
+    }, 
+    {
+        "processName": "ONB",
+        "cases": [
+            {
+                "status": "done_success",
+                "answer": "Успех"
+            }, 
+            {
+                "status": "dm1_decline",
+                "answer": "Отказ от банка"
+            },
+            {
+                "status": "dm2_decline",
+                "answer": "Отказ от банка"
+            },
+            {
+                "status": "dm3_decline",
+                "answer": "Отказ от банка"
+            }
+        ]
+    }
+]
