@@ -196,9 +196,16 @@ func (c *Client) GetProcessStatus(ctx context.Context, processID string) (string
 	}
 	for i := 35; i <= 40; i++ {
 		message := processVars[i]
-		if value, ok := message.Value.(string); ok && len(value) > 4 {
-			fmt.Println(message)
-			return value, nil
+		if value, ok := message.Value.(string); ok {
+			if message.Name == "processStatusMessage" { // index 195!enkp
+				if value != "" {
+					return value, nil
+				}
+			}
+			if len(value) > 4 {
+				fmt.Println(message)
+				return value, nil
+			}
 		}
 	}
 
