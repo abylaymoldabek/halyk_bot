@@ -19,8 +19,8 @@ import (
 func SetEnvAll() {
 	os.Setenv("CTX_TIMEOUT", "500000000")
 	os.Setenv("TOKEN_URL", "http://halykbpm-auth.halykbank.nb/WindowsAuthentication/auth/bearer?clientId=spmapi")
-	os.Setenv("USERNAME", "00052920")
-	os.Setenv("PASSWORD", "Xanx@123")
+	os.Setenv("USERNAME", "Your username")
+	os.Setenv("PASSWORD", "Your password")
 	os.Setenv("PROCESSES_URL", "https://halykbpm-api.halykbank.nb/process-searcher/instance?searchValue=")
 	os.Setenv("PROCESS_URL", "https://halykbpm-api.halykbank.nb/bpm-front-webapi/api/history/variable-instance?")
 	os.Setenv("GET_INCIDENT_URL", "https://halykbpm-api.halykbank.nb/bpm-front-webapi/api/incident?processInstanceId=")
