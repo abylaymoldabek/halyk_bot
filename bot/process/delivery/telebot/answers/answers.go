@@ -2,7 +2,7 @@ package answers
 
 import (
 	"encoding/json"
-	"errors"
+	_ "errors"
 	"io/ioutil"
 )
 
@@ -10,17 +10,7 @@ const (
 	filePath = "./answers.json"
 )
 
-type Case struct {
-	Status string
-	Answer string
-}
-
-type ProcessInfo struct {
-	ProcessName string
-	Cases       []Case
-}
-
-type Answers []ProcessInfo
+type Answers map[string]string
 
 func NewAnswers() Answers {
 	var answers Answers
@@ -33,16 +23,29 @@ func NewAnswers() Answers {
 	return answers
 }
 
-func (answers Answers) GetAnswer(processName, processStatus string) (string, error) {
-	for _, ans := range answers {
-		if ans.ProcessName == processName {
-			for _, cs := range ans.Cases {
-				if cs.Status == processStatus {
-					return cs.Answer, nil
-				}
-			}
-		}
-	}
+// type Case struct {
+// 	Status string
+// 	Answer string
+// }
 
-	return "", errors.New("НЕТ ТАКОГО КЕЙСА")
-}
+// type ProcessInfo struct {
+// 	ProcessName string
+// 	Cases       []Case
+// }
+
+// type Answers []ProcessInfo
+
+
+// func (answers Answers) GetAnswer(processName, processStatus string) (string, error) {
+// 	for _, ans := range answers {
+// 		if ans.ProcessName == processName {
+// 			for _, cs := range ans.Cases {
+// 				if cs.Status == processStatus {
+// 					return cs.Answer, nil
+// 				}
+// 			}
+// 		}
+// 	}
+
+// 	return "", errors.New("НЕТ ТАКОГО КЕЙСА")
+// }

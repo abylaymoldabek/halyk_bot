@@ -1,44 +1,21 @@
-[
-    {
-        "processName": "EKP",
-        "cases": [
-            {
-                "status": "done_success",
-                "answer": "Успех"
-            }, 
-            {
-                "status": "dm1_decline",
-                "answer": "Отказ от банка"
-            },
-            {
-                "status": "dm2_decline",
-                "answer": "Отказ от банка"
-            },
-            {
-                "status": "dm3_decline",
-                "answer": "Отказ от банка"
-            }
-        ]
-    }, 
-    {
-        "processName": "ONB",
-        "cases": [
-            {
-                "status": "done_success",
-                "answer": "Успех"
-            }, 
-            {
-                "status": "dm1_decline",
-                "answer": "Отказ от банка"
-            },
-            {
-                "status": "dm2_decline",
-                "answer": "Отказ от банка"
-            },
-            {
-                "status": "dm3_decline",
-                "answer": "Отказ от банка"
-            }
-        ]
-    }
-]
+{
+    "success_done": "Успех",
+    "dm1_decline": "Отказ от банка",
+    "dm2_decline": "Отказ от банка",
+    "dm3_decline": "Отказ от банка",
+    "additional_info_needed": "заявка ожидает заполениния анкеты",
+    "dm_approve_int_st": "Одобренные решения",
+    "init_process_int_st": "В процессе",
+    "verification_int_st": "Заявка на верификации",
+
+
+    "done_success": "Успешная регистрация",
+    "done_rejected_publicId": "Необходимо переустановить доверенный номер через АТМ",
+    "done_rejected_duplicate_dossier": "Дубль досье",
+    "done_rejected_double_dossier": "Дубль досье",
+    "done_rejected_verificator": "Низкий результат при всерке лица",
+    "done_rejected_hard_block": "Клиент в блоке. Обратитесь в ДЗИР",
+    "done_cancelled": "Тайм-аут при верификации",
+    "done_missing_main_document": "Данные по УДВ/ВЖ не найдены в ГБДФЛ(ГКБ)",
+    "done_rejected_modification": "Проблемы с досье. Обратитесь в ДАСиКР"
+}

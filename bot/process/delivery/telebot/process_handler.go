@@ -78,7 +78,10 @@ func (p *ProcessHandler) ProcessRequest() {
 				}
 				msg.Text = res.Status
 
-				text, _ := p.ans.GetAnswer(criteria.Type, res.Status)
+				text, ok := p.ans[res.Status]
+				if !ok { 
+					text = "Неизвестный кейс" 
+				}
 				msg.Text = text
 				bot.Send(msg)
 			} else {
