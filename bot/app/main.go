@@ -26,7 +26,10 @@ func SetEnvAll() {
 	os.Setenv("GET_INCIDENT_URL", "https://halykbpm-api.halykbank.nb/bpm-front-webapi/api/incident?processInstanceId=")
 	os.Setenv("RETRY_JOB_URL", "https://halykbpm-api.halykbank.nb/bpm-front-webapi/api/job")
 	os.Setenv("RETRY_TASK_URL", "https://halykbpm-api.halykbank.nb/bpm-front-webapi/api/external-task/retries")
-
+	os.Setenv("ACTIVITY_SEARCH_URL", "https://halykbpm-api.halykbank.nb/bpm-front-webapi/api/history/activity-instance?sortBy=startTime&sortOrder=desc&processInstanceId=")
+	os.Setenv("MODIFICATION_URL", "https://halykbpm-api.halykbank.nb/bpm-front-webapi/api/process-instance/")
+	os.Setenv("UPDATE_VARS_URL", "https://halykbpm-api.halykbank.nb/bpm-front-webapi/api/execution/")
+	os.Setenv("MANAGER_ROLE_URL", "https://halykbpm-api.halykbank.nb/bpm-front-webapi/api/group?member=")
 }
 
 func main() {

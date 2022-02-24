@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net"
+
 	//"io/ioutil"
 	"net/http"
 	"os"
@@ -24,28 +25,35 @@ type Token struct {
 
 type Client struct {
 	http.Client
-	token           Token
-	username        string
-	password        string
-	tokenURL        string
-	getProcessesURL string
-	getProcessURL   string
-	getIncidentsURL string
-	retryTaskURL    string
-	retryJobURL     string
+	token             Token
+	username          string
+	password          string
+	tokenURL          string
+	getProcessesURL   string
+	getProcessURL     string
+	getIncidentsURL   string
+	retryTaskURL      string
+	retryJobURL       string
+	activitySearchURL string
+	modificationURL   string
+	updateVarsURL     string
+	managerRoleURL    string
 }
 
 // NewClient returns new Client
 func NewClient() *Client {
 	c := &Client{
-		username:        os.Getenv("USERNAME"),
-		password:        os.Getenv("PASSWORD"),
-		tokenURL:        os.Getenv("TOKEN_URL"),
-		getProcessesURL: os.Getenv("PROCESSES_URL"),
-		getProcessURL:   os.Getenv("PROCESS_URL"),
-		getIncidentsURL: os.Getenv("GET_INCIDENT_URL"),
-		retryTaskURL:    os.Getenv("RETRY_TASK_URL"),
-		retryJobURL:     os.Getenv("RESTRY_JOB_URL"),
+		username:          os.Getenv("USERNAME"),
+		password:          os.Getenv("PASSWORD"),
+		tokenURL:          os.Getenv("TOKEN_URL"),
+		getProcessesURL:   os.Getenv("PROCESSES_URL"),
+		getProcessURL:     os.Getenv("PROCESS_URL"),
+		getIncidentsURL:   os.Getenv("GET_INCIDENT_URL"),
+		retryTaskURL:      os.Getenv("RETRY_TASK_URL"),
+		retryJobURL:       os.Getenv("RESTRY_JOB_URL"),
+		activitySearchURL: os.Getenv("ACTIVITY_SEARCH_URL"),
+		modificationURL:   os.Getenv("MODIFICATION_URL"),
+		updateVarsURL:     os.Getenv("UPDATE_VARS_URL"),
 	}
 	if err := c.setToken(); err != nil {
 		c.setToken()
@@ -65,14 +73,6 @@ func NewClient() *Client {
 	return c
 
 }
-
-// maxIdleConnections int
-// 	connectionTimeout  time.Duration
-// 	responseTimeout    time.Duration
-// 	disableTimeouts    bool
-// 	baseUrl            string
-// 	client             *http.Client
-// 	userAgent          string
 
 // SetToken allows user set their own token
 func (c *Client) SetToken(token string) error {
@@ -98,13 +98,7 @@ func (c *Client) setToken() error {
 	if err != nil {
 		return err
 	}
-	
-	// if res.StatusCode == 401 {
-	// 	io.Copy(ioutil.Discard, res.Body)
-	// 	res.Body.Close()
-	// 	//res, _ = c.Do(req)
-	// 	c.setToken()
-	// }
+
 	defer res.Body.Close()
 	var dst bytes.Buffer
 	if _, err := io.Copy(&dst, res.Body); err != nil {
@@ -123,7 +117,7 @@ func (c *Client) setToken() error {
 	return nil
 }
 
-// getProcessID gets processID as per provided search criteria
+// GetProcessID gets processID as per provided search criteria
 func (c *Client) GetProcess(ctx context.Context, searchCriteria domain.Criteria) (*domain.Process, error) {
 	log.Println("GetProcess hit")
 	processesURL := c.getProcessesURL
@@ -137,15 +131,6 @@ func (c *Client) GetProcess(ctx context.Context, searchCriteria domain.Criteria)
 		return nil, err
 	}
 	req = req.WithContext(ctx)
-	// c.token.mx.RWLock()
-	// defer c.token.mx.RWUnlock()
-	// req.Header.Set("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAuthorization", "Bearer "+c.token)
-	// TODO: IF EVERYTHING OK, DELETE 3 LINES BELOW!!!!
-	// res, err := c.Do(req)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	res, err := c.getDataWithRetries(req)
 	if err != nil {
 		return nil, err
@@ -158,7 +143,6 @@ func (c *Client) GetProcess(ctx context.Context, searchCriteria domain.Criteria)
 
 	defer res.Body.Close()
 	log.Println("Printing code sttus", res.StatusCode)
-	//fmt.Println("dst bytes:\n\n\n\n\n", string(dst.Bytes()))
 	var processes []*domain.Process
 	if err := json.Unmarshal(dst.Bytes(), &processes); err != nil {
 		//fmt.Println("Unramshal json error", err)
@@ -177,7 +161,7 @@ func (c *Client) GetProcess(ctx context.Context, searchCriteria domain.Criteria)
 	return nil, domain.ErrProcessNotFound
 }
 
-// getProcessStatus gets status of given process
+// GetProcessStatus gets status of given process
 func (c *Client) GetProcessStatus(ctx context.Context, processID string) (string, error) {
 	log.Println("GetProcessStatus hit")
 	if processID == "" {
@@ -190,14 +174,8 @@ func (c *Client) GetProcessStatus(ctx context.Context, processID string) (string
 
 	var jsonStr = []byte(fmt.Sprintf("{\"processInstanceIdIn\":[\"%s\"]}", processID))
 	dst := bytes.NewBuffer(jsonStr)
-	// var jsonStr = []byte(fmt.Sprintf("{\"processInstanceIdIn\":[\"%s\"]}", processID))
 	req, err := http.NewRequest(http.MethodPost, processURL, dst)
 	req = req.WithContext(ctx)
-	//c.token.mx.RLock()
-	// defer c.token.mx.RWUnlock()
-	// req.Header.Set("Content-Type", "application/json")
-	// req.Header.Set("Authorization", "Bearer "+c.token)
-
 	res, err := c.getDataWithRetries(req)
 	if err != nil {
 		return "", err
@@ -210,23 +188,15 @@ func (c *Client) GetProcessStatus(ctx context.Context, processID string) (string
 	defer res.Body.Close()
 
 	var processVars []domain.ProcessStatus
-	//var A []Sth2
 	if err := json.Unmarshal(dst.Bytes(), &processVars); err != nil {
-		//fmt.Println("err last req unmarshal", err)
 		return "", err
 	}
 	if len(processVars) < 40 {
 		return "", domain.ErrNoVarsFound
 	}
-	// TODO: Remove below
-	// for i, hing := range processVars {
-	// 	fmt.Println(i, hing)
-	// }
-
 	for i := 35; i <= 40; i++ {
 		message := processVars[i]
 		if value, ok := message.Value.(string); ok && len(value) > 4 {
-			//if value := message.Value; len(value)>4 && value[:4] == "done" {
 			fmt.Println(message)
 			return value, nil
 		}
@@ -269,16 +239,17 @@ func (c *Client) getDataWithRetries(req *http.Request) (*http.Response, error) {
 			return nil, err
 		}
 		status = res.StatusCode
-		if res.StatusCode != 401 { //TODO kakoi tam success code / unauthorized code???
+		if res.StatusCode != 401 {
 			break
 		}
 	}
-	if status == 401 { //TODO: or if status != 204 return nil, someerror
+	if status == 401 {
 		return nil, domain.ErrUnauthorized
 	}
 	return res, nil
 }
 
+// RetryJobOrTask retries job or external task when incidents occur
 func (c *Client) RetryJobOrTask(ctx context.Context, processID string) error {
 	log.Println("Retry Job or task")
 	if processID == "" {
@@ -305,9 +276,7 @@ func (c *Client) RetryJobOrTask(ctx context.Context, processID string) error {
 	res.Body.Close()
 
 	var incidents []domain.Incident
-	//var A []Sth2
 	if err := json.Unmarshal(dst.Bytes(), &incidents); err != nil {
-		//fmt.Println("err last req unmarshal", err)
 		return err
 	}
 	if len(incidents) == 0 {
@@ -351,51 +320,150 @@ func (c *Client) RetryJobOrTask(ctx context.Context, processID string) error {
 	return nil
 }
 
-// func (c *Client) tokenValid() bool {
-// 	tokenString := c.token
-// 	if tokenString == "" {
-// 		return false
-// 	}
-// 	token, _, err := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
-// 	if err, ok := err.(*jwt.ValidationError); ok && err.Errors != jwt.ValidationErrorUnverifiable || !ok {
-// 		fmt.Println(err)
-// 		return false
-// 	}
+// GetActivityID gets ID for a given activity name
+func (c *Client) GetActivityID(ctx context.Context, processID, activityName string) (string, error) {
+	if processID == "" {
+		return "", domain.ErrProcessIDNotFound
+	}
+	url := c.activitySearchURL
+	if url == "" {
+		return "", domain.ErrActivitySearchURLNotFound
+	}
+	url += processID
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", err
+	}
+	req = req.WithContext(ctx)
+	res, err := c.getDataWithRetries(req)
+	if err != nil {
+		return "", err
+	}
+	var dst bytes.Buffer
+	if _, err = io.Copy(&dst, res.Body); err != nil {
+		log.Println("Error here")
+		return "", err
+	}
 
-// 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-// 		exp, ok := claims["exp"].(float64)
-// 		if !ok {
-// 			return false
-// 		}
-// 		expiredTime := time.Unix(int64(exp), 0)
-// 		if time.Now().After(expiredTime) {
-// 			return false
-// 		}
-// 	}
-// 	return true
-// }
+	defer res.Body.Close()
+	log.Println("Printing code sttus", res.StatusCode)
+	var activities []domain.Activity
+	if err := json.Unmarshal(dst.Bytes(), &activities); err != nil {
+		//fmt.Println("Unramshal json error", err)
+		return "", err
+	}
+	if len(activities) == 0 {
+		return "", domain.ErrNoActivityFound
+	}
+	var ID string
+	for _, a := range activities {
+		if a.ActivityName == activityName {
+			ID = a.Id
+			if ID == "" {
+				return "", domain.ErrActivityIDNotFound
+			}
+			return ID, nil
+		}
+	}
+	return "", domain.ErrActivityNotFound
+}
 
-// func (c *Client) getURLDataWithRetries(req *http.Request) (*http.Response, error) {
-// 	var body []byte
-// 	var err error
-// 	var resp *http.Response
+// Redo reattempts an activity, e.g. UVK
+func (c *Client) Redo(ctx context.Context, processID, activityID string) error {
+	log.Println("Redo")
+	if processID == "" {
+		return domain.ErrProcessIDNotFound
+	}
+	if activityID == "" {
+		return domain.ErrActivityIDNotFound
+	}
+	url := c.modificationURL
+	if url == "" {
+		return domain.ModificationURLNotFound
+	}
+	url += fmt.Sprintf("%s/modification", processID)
+	// Request body
 
-// 	for i := 0; i < 5; i++ {
-// 		res, err := c.Do(req)
+	//{"instructions":[{"transitionId":"Flow_189texq","type":"startTransition"},{"type":"cancel","activityInstanceId":"notificationEnd:gf3e1b6e0f94d022"}],"skipCustomListeners":true,"skipIoMappings":true}
+	var jsonStr = []byte(fmt.Sprintf("{\"instructions\":[{\"transitionId\":\"Flow_189texq\", \"type\":\"startTransition\"},{\"type\":\"cancel\", \"activityInstanceId\":\"%s\"}], \"skipCustomListeners\":true,\"skipIoMappings\":true}", processID))
+	dst := bytes.NewBuffer(jsonStr)
+	req, err := http.NewRequest(http.MethodPost, url, dst)
+	fmt.Println("modification url", url)
+	req = req.WithContext(ctx)
 
-// 		if err == nil {
-// 			break
-// 		}
+	res, err := c.getDataWithRetries(req)
+	if err != nil {
+		return err
+	}
+	// defer res.Body.Close() // response isn't supposed to contain body
+	log.Println("Modification status:", res.StatusCode)
+	return nil
+}
 
-// 		fmt.Fprintf(os.Stderr, "Request error: %+v\n", err)
-// 		fmt.Fprintf(os.Stderr, "Retrying in %v\n", backoff)
-// 		time.Sleep(backoff)
-// 	}
+// UpdateBranch updates two variables: branchSapCode and initRole
+func (c *Client) UpdateBranch(ctx context.Context, processID, branchCode string) error {
+	url := c.updateVarsURL
+	if url == "" {
+		return domain.ErrUpdateVarsURLNotFound
+	}
+	if processID == "" {
+		return domain.ErrProcessIDNotFound
+	}
+	url += fmt.Sprintf("%s/localVariables", processID)
+	var jsonStr = []byte(fmt.Sprintf("{\"modifications\": {\"branchSapCode\": {\"type\": \"String\", \"value\": \"%s\"}}},  {\"initRole\": {\"type\": \"String\", \"value\": \"app-front-cashier-vk-%s\"}}}", branchCode, branchCode))
+	dst := bytes.NewBuffer(jsonStr)
+	req, err := http.NewRequest(http.MethodPost, url, dst)
+	fmt.Println("modification url", url)
 
-// 	// All retries failed
-// 	if err != nil {
-// 		return nil, nil, err
-// 	}
+	req = req.WithContext(ctx)
 
-// 	return resp, body, nil
-// }
+	res, err := c.getDataWithRetries(req)
+	if err != nil {
+		return err
+	}
+	fmt.Println("update branchSapCode status", res.Status)
+	if res.StatusCode != 204 {
+		return domain.ErrUpdateFailed
+	}
+	return nil
+	//jsontStr =
+}
+
+// GetRole fetches role of manager sending request
+func (c *Client) GetRole(ctx context.Context, tab string) error {
+	if tab == "" {
+		return domain.ErrInvalidTab
+	}
+	url := c.managerRoleURL
+	if url == "" {
+		return domain.ErrRoleURLNotFound
+	}
+	url += tab
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	//req, err := http.NewRequest(http.MethodGet, "https://halykbpm-api.halykbank.nb/process-searcher/instance?searchValue=980124450084", nil)
+	if err != nil {
+		return err
+	}
+	req = req.WithContext(ctx)
+	res, err := c.getDataWithRetries(req)
+	if err != nil {
+		return err
+	}
+	var dst bytes.Buffer
+	if _, err = io.Copy(&dst, res.Body); err != nil {
+		log.Println("Error here")
+		return err
+	}
+
+	defer res.Body.Close()
+	log.Println("Printing code sttus", res.StatusCode)
+	var roles []domain.Role
+	if err := json.Unmarshal(dst.Bytes(), &roles); err != nil {
+		//fmt.Println("Unramshal json error", err)
+		return err
+	}
+	if len(roles) == 0 {
+		return domain.ErrNoRoleFound
+	}
+	return nil
+}
