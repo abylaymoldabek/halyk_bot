@@ -8,12 +8,13 @@ import (
 	"github.com/rs/zerolog"
 )
 
+// Можно добавить в слой репозитория для дебажинга
 type Logger struct {
 	log zerolog.Logger
 }
 
-func (l *Logger) Error(err error) {
-	l.log.Error().Err(err).Msg("")
+func (l *Logger) Error(err error, msg string) {
+	l.log.Error().Err(err).Msg(msg)
 }
 
 func (l *Logger) Info(message string) {
@@ -24,6 +25,7 @@ func (l *Logger) Debug(message string) {
 	l.log.Debug().Msg(message)
 }
 
+// NewLogger returns instance of Logger, which satisfies domain.Logger interface
 func NewLogger() *Logger {
 	var log zerolog.Logger
 	tempFile, err := ioutil.TempFile(os.TempDir(), "")

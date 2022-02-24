@@ -7,7 +7,8 @@ type ResponseStruct struct {
 }
 
 type ProcessUsecase interface {
-	ProcessRequest(ctx context.Context, searchCriteria Criteria) (*ResponseStruct, error)
+	ProcessRequest(ctx context.Context, log Logger, searchCriteria Criteria) (*ResponseStruct, error)
+	ProcessTransfer(c context.Context, log Logger, searchCriteria Criteria) (*ResponseStruct, error)
 }
 
 type ProcessRepository interface {

@@ -68,9 +68,10 @@ func (p *ProcessHandler) ProcessRequest() {
 				// 	res, err := p.uc.ProcessTransfer(criteria)
 				// }
 				// в criteria добавим еще филиал
-				res, err := p.uc.ProcessRequest(context.Background(), criteria)
+
+				res, err := p.uc.ProcessRequest(context.Background(), p.log, criteria)
 				if err != nil {
-					fmt.Println(err)
+					p.log.Error(err, "сюда табельный")
 					return
 				}
 				msg.Text = res.Status

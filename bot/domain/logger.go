@@ -1,7 +1,7 @@
 package domain
 
 type Logger interface {
-	Error(error)
+	Error(error, string)
 	Info(string)
 	Debug(string)
 }
